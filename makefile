@@ -1,5 +1,3 @@
-# Makefile for Docker Compose
-
 # Default target
 all: clean build
 
@@ -8,24 +6,35 @@ clean:
 	@echo "Stopping and removing containers..."
 	docker-compose down
 
-# Remove all Docker images
-remove-images:
-	@echo "Removing unused Docker images..."
-	docker rmi $(docker images -q) || true
+# Remove only dangling Docker images
+remove-dangling-images:
+	@echo "Removing dangling Docker images..."
+	docker image prune -f
 
-# Build and recreate containers
+# Prune unused volumes
+prune-volumes:
+	@echo "Pruning unused Docker volumes..."
+	docker volume prune -f
+
+# Build and start containers without forcing recreation
 build:
-	@echo "Building and recreating containers..."
-	docker-compose up --build --force-recreate
+	@echo "Building and starting containers..."
+	docker-compose up --build
 
 # Prune unused Docker resources
 prune:
 	@echo "Pruning unused Docker resources..."
 	docker system prune -a -f
 
-# Combined command to clean, remove images, and build
+# Combined command to clean, prune dangling images, prune volumes, and build
 fresh:
-	@echo "Creating fresh containers and deleting past builds..."
+	@echo "Creating fresh containers and cleaning unused images/volumes..."
 	$(MAKE) clean
-	$(MAKE) remove-images
+	$(MAKE) remove-dangling-images
+	$(MAKE) prune-volumes
 	$(MAKE) build
+
+# Full prune for periodic deep cleaning
+full-prune:
+	@echo "Running full Docker prune..."
+	docker system prune --volumes -a -f
