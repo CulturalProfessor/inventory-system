@@ -3,7 +3,7 @@ import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import React from "react";
 
- const App: React.FC = () => {
+ const Dashboard: React.FC = () => {
   return (
     <React.Fragment>
       <AppProvider>
@@ -13,4 +13,4 @@ import React from "react";
   );
 };
 
-export default App;
+export default Dashboard;

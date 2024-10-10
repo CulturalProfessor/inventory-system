@@ -9,6 +9,9 @@ import {
 } from "@mui/material";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { loginUser, setAuthToken } from "../utils/api";
+import { useNavigate } from "react-router-dom";
+import { enqueueSnackbar } from "notistack";
 
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -19,15 +22,27 @@ const validationSchema = Yup.object().shape({
     .required("Password is required"),
 });
 
-// Initial form values
 const initialValues = {
   username: "",
   password: "",
 };
 
 const Login: React.FC = () => {
-  const handleSubmit = (values: typeof initialValues) => {
-    console.log("Form Data:", values);
+  const navigate = useNavigate();
+  const handleSubmit = async (values: typeof initialValues) => {
+    try {
+      const loginResponse = await loginUser(values);
+
+      setAuthToken(loginResponse.token);
+
+      navigate("/dashboard");
+    } catch (error) {
+      const customError = error as { message?: string };
+      const errorMessage =
+        customError.message || "An unexpected error occurred";
+        enqueueSnackbar(errorMessage, { variant: "error" });
+      console.error("Login failed:", error);
+    }
   };
 
   return (
@@ -50,9 +65,7 @@ const Login: React.FC = () => {
                   label="Username"
                   name="username"
                   variant="outlined"
-                  helperText={
-                    <ErrorMessage name="username" component="div" />
-                  }
+                  helperText={<ErrorMessage name="username" component="div" />}
                   error={touched.username && !!errors.username}
                 />
               </Box>
@@ -65,9 +78,7 @@ const Login: React.FC = () => {
                   label="Password"
                   name="password"
                   variant="outlined"
-                  helperText={
-                    <ErrorMessage name="password" component="div" />
-                  }
+                  helperText={<ErrorMessage name="password" component="div" />}
                   error={touched.password && !!errors.password}
                 />
               </Box>

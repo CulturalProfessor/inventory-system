@@ -9,6 +9,9 @@ import {
 } from "@mui/material";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { registerUser, loginUser, setAuthToken } from "../utils/api";
+import { useNavigate } from "react-router-dom";
+import { enqueueSnackbar } from "notistack";
 
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -25,8 +28,26 @@ const initialValues = {
 };
 
 const SignUp: React.FC = () => {
-  const handleSubmit = (values: typeof initialValues) => {
-    console.log("Form Data:", values);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (
+    values: typeof initialValues,
+    { resetForm }: { resetForm: () => void }
+  ) => {
+    try {
+      await registerUser(values);
+
+      const loginResponse = await loginUser(values);
+
+      setAuthToken(loginResponse.token);
+      navigate("/dashboard");
+    } catch (error) {
+      const customError = error as { message?: string };
+      const errorMessage =
+        customError.message || "An unexpected error occurred";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+      resetForm();
+    }
   };
 
   return (
@@ -35,6 +56,7 @@ const SignUp: React.FC = () => {
         <Typography variant="h5" component="h1" gutterBottom>
           Sign Up
         </Typography>
+
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
@@ -49,9 +71,7 @@ const SignUp: React.FC = () => {
                   label="Username"
                   name="username"
                   variant="outlined"
-                  helperText={
-                    <ErrorMessage name="username" component="div" />
-                  }
+                  helperText={<ErrorMessage name="username" component="div" />}
                   error={touched.username && !!errors.username}
                 />
               </Box>
@@ -64,9 +84,7 @@ const SignUp: React.FC = () => {
                   label="Password"
                   name="password"
                   variant="outlined"
-                  helperText={
-                    <ErrorMessage name="password" component="div" />
-                  }
+                  helperText={<ErrorMessage name="password" component="div" />}
                   error={touched.password && !!errors.password}
                 />
               </Box>

@@ -3,7 +3,7 @@ import {
   loginRoutes,
   registerRoutes,
   getUsers,
-} from "./controllers/loginController"; // Import the loginRoutes function
+} from "./controllers/userController";
 import {
   addProduct,
   deleteProduct,
@@ -11,15 +11,17 @@ import {
   predictProduct,
   updateProduct,
 } from "./controllers/productController";
+import { authenticateToken } from "./middleware";
 
 const router = express.Router();
 
-router.get("/users", getUsers);
+router.get("/users", authenticateToken, getUsers);
 router.post("/login", loginRoutes);
 router.post("/register", registerRoutes);
-router.post("/product/add", addProduct);
-router.get("/product", getProducts);
-router.post("/product/update", updateProduct);
-router.delete("/product/delete", deleteProduct);
-router.post("/product/predict",predictProduct );
+router.post("/product/add", authenticateToken, addProduct);
+router.get("/product", authenticateToken, getProducts); 
+router.post("/product/update", authenticateToken, updateProduct);
+router.delete("/product/delete", authenticateToken, deleteProduct);
+router.post("/product/predict", authenticateToken, predictProduct);
+
 export default router;
