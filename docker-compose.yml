@@ -1,0 +1,97 @@
+version: "3"
+
+# By default docker compose creates a bridge network and adds all the containers to it.
+# mongod is not aware of this network and therefore doesn't bind to that ip. 
+# By default, binds only to 127.0.0.1, which means only connections will be allowed
+# from within the container.
+# So we need to create a static IP for the mongo container and connect to the mongo
+# contaier via that IP.
+services:
+  client:
+    build: ./client
+    container_name: client
+    restart: always
+    volumes:
+      - ./client:/app
+      # When building the image, the node modules are included within the image, after we mount
+      # the above volume the node_modules folder is overwritten 
+      # and no more accessible in the container.
+      # So we need to re-add the modules via the below volume,
+      #
+      # Use a data volume to store all the node_modules, 
+      # as data volumes copy in the data from the built docker image before the 'client' directory is mounted
+      - /app/node_modules
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV="development"
+      - CHOKIDAR_USEPOLLING=true  
+    depends_on:
+      - server
+    networks:
+      mongo_net:     
+
+  server:
+    build: ./server
+    container_name: server
+    environment:
+      - MONGODB_HOST=mongo
+      - MONGODB_PORT=27017
+      - DATABASE_NAME=db
+      - PORT=3001
+      - CHOKIDAR_USEPOLLING="true"
+    ports:
+      - 3001:3001
+      - 9229:9229
+    volumes:
+      - ./server:/app
+      # When building the image, the node modules are included within the image, after we mount
+      # the above volume the node_modules folder is overwritten 
+      # and no more accessible in the container.
+      # So we need to re-add the modules via the below volume,
+      #
+      # Use a data volume to store all the node_modules, 
+      # as data volumes copy in the data from the built docker image before the 'client' directory is mounted
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - model
+    networks:
+       mongo_net:   
+       model_net:       
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+    - 27017:27017
+    # Assign all containers to a custom mongo_net network.
+    # Create a static IP for the mongo container.
+    # We can then connect to mongo via that IP
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      mongo_net:
+        ipv4_address: 172.16.0.1
+    command: mongod --bind_ip 127.0.0.1,172.16.0.1 
+
+  model:
+    build: ./model
+    container_name: model 
+    ports: 
+      - 8000:8000
+    networks:
+      model_net:
+      
+networks:
+  mongo_net:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.16.0.0/24
+        gateway: 172.16.0.254
+  model_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:

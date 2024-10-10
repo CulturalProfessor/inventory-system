@@ -1,0 +1,30 @@
+{
+    "env": {
+      "node": true, // Adding "node" environment for Node.js projects
+      "browser": true,
+      "es2021": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2022, // Specifying a specific ECMAScript version
+      "sourceType": "module"
+    },
+    "ignorePatterns": ["node_modules/", "dist/**/*.js"],
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "no-unused-vars": "off",
+      "indent": ["error", 2],
+      "quotes": ["error", "double"],
+      "semi": ["error", "always"],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/ban-ts-comment": "off"
+    },
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended" // Adding TypeScript-specific recommended rules
+    ]
+  }
+  
