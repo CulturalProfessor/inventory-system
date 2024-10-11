@@ -1,16 +1,17 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-interface User {
-  username: string;
-  id?: string;
-  image?: string;
-  email?: string;
-}
+import {
+  getUserLocal,
+  removeAuthToken,
+  removeUser,
+  setAuthToken,
+  setUserLocal,
+  User,
+} from "../utils/api";
 
 interface UserContextType {
   user: User | null;
-  login: (user: User) => void;
+  login: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -20,18 +21,20 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    const storedUser = getUserLocal();
+    return storedUser;
   });
 
-  const login = (user: User) => {
+  const login = (user: User, token: string) => {
     setUser(user);
-    localStorage.setItem("user", JSON.stringify(user));
+    setUserLocal(user);
+    setAuthToken(token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
+    removeUser();
+    removeAuthToken();
   };
 
   return (

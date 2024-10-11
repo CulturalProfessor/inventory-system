@@ -9,10 +9,10 @@ import {
 } from "@mui/material";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { registerUser, loginUser, setAuthToken } from "../utils/api";
+import { registerUser, loginUser } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
-import { useUser } from "../hooks/userContext";
+import { useUser } from "../hooks/useUser";
 import imageCompression from "browser-image-compression";
 
 const MAX_IMAGE_SIZE_MB = 0.1 * 1024 * 1024;
@@ -27,14 +27,10 @@ const validationSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
   image: Yup.mixed()
     .required("Image is required")
-    .test(
-      "fileSize",
-      "File size exceeds limit",
-      (value) => {
-        if (!value) return false;
-        return (value as File).size <= MAX_IMAGE_SIZE_MB
-      }
-    ),
+    .test("fileSize", "File size exceeds limit", (value) => {
+      if (!value) return false;
+      return (value as File).size <= MAX_IMAGE_SIZE_MB;
+    }),
 });
 
 interface FormValues {
@@ -77,18 +73,21 @@ const SignUp: React.FC = () => {
           password: values.password,
         });
 
-        setAuthToken(loginResponse.token);
-        login({
-          username: values.username,
-          email: values.email,
-          id: loginResponse.id,
-          image: loginResponse.image,
-        });
+        login(
+          {
+            username: values.username,
+            email: values.email,
+            id: loginResponse.id,
+            image: loginResponse.image,
+          },
+          loginResponse.token
+        );
 
         navigate("/dashboard");
       } catch (error) {
         console.error("Error registering user:", error);
-        const errorMessage = (error as Error).message || "An unexpected error occurred.";
+        const errorMessage =
+          (error as Error).message || "An unexpected error occurred.";
         enqueueSnackbar(errorMessage, { variant: "error" });
         resetForm();
       }
@@ -109,18 +108,15 @@ const SignUp: React.FC = () => {
       const compressedFile = await imageCompression(file, options);
 
       if (compressedFile.size > MAX_IMAGE_SIZE_MB) {
-        enqueueSnackbar(
-          `Image exceeds size limit after compression.`,
-          {
-            variant: "error",
-          }
-        );
+        enqueueSnackbar(`Image exceeds size limit after compression.`, {
+          variant: "error",
+        });
         return;
       }
 
       setFieldValue("image", compressedFile);
     } catch (error) {
-      setFieldValue("image",undefined);
+      setFieldValue("image", undefined);
       enqueueSnackbar("Error compressing image", { variant: "error" });
     }
   };

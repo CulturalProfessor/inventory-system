@@ -7,7 +7,7 @@ import Login from "./pages/signin";
 import { SnackbarProvider } from "notistack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
-import { UserProvider } from "./hooks/userContext";
+import { UserProvider } from "./hooks/useUser";
 import SignOut from "./components/signout";
 
 // Create a custom theme

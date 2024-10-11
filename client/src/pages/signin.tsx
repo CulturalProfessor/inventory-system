@@ -9,10 +9,10 @@ import {
 } from "@mui/material";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { loginUser, setAuthToken } from "../utils/api";
+import { loginUser } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
-import { useUser } from "../hooks/userContext";
+import { useUser } from "../hooks/useUser";
 
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -35,14 +35,16 @@ const Login: React.FC = () => {
     try {
       const loginResponse = await loginUser(values);
       const { token, user } = loginResponse;
-      setAuthToken(token);
-      console.log("Login successful:", user);
-      login({
-        username: user.username,
-        email: user.email,
-        id: user._id,
-        image: user.image,
-      });      navigate("/dashboard");
+      login(
+        {
+          username: user.username,
+          email: user.email,
+          id: user._id,
+          image: user.image,
+        },
+        token
+      );
+      navigate("/dashboard");
     } catch (error) {
       const customError = error as { message?: string };
       const errorMessage =

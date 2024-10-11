@@ -9,20 +9,38 @@ const getApiUrl = () => {
   return "https://api.example.com";
 };
 
+export const getAuthToken = () => {
+  return localStorage.getItem("token");
+};
+
+export const setAuthToken = (token: string) => {
+  localStorage.setItem("token", token);
+};
+
+export const removeAuthToken = () => {
+  localStorage.removeItem("token");
+};
+
+export const setUserLocal = (user: User) => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
+export const getUserLocal = (): User | null => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
+
+export const removeUser = () => {
+  localStorage.removeItem("user");
+};
+
 const api = axios.create({
   baseURL: getApiUrl(),
   headers: {
+    Authorization: `Bearer ${getAuthToken()}`,
     "Content-Type": "application/json",
   },
 });
-
-export const setAuthToken = (token: string | null) => {
-  if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common["Authorization"];
-  }
-};
 
 interface CustomError {
   message: string;
@@ -30,6 +48,21 @@ interface CustomError {
   data?: unknown;
 }
 
+export interface Product {
+  _id: string;
+  store: number;
+  dept: number;
+  size: number;
+  type: number;
+  date: string;
+}
+
+export interface User {
+  username: string;
+  id?: string;
+  image?: string;
+  email?: string;
+}
 // Handle errors from API calls
 const handleError = (error: unknown): CustomError => {
   const customError: CustomError = {
@@ -101,7 +134,7 @@ export const registerUser = async (data: {
   username: string;
   password: string;
   email: string;
-  image: string
+  image: string;
 }) => {
   return apiPost("/register", data);
 };

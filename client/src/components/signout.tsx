@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../hooks/userContext";
+import { useUser } from "../hooks/useUser";
 
 const SignOut: React.FC = () => {
   const { logout } = useUser();

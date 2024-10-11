@@ -8,9 +8,12 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import LayersIcon from "@mui/icons-material/Layers";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
-import type { Router, Navigation } from "@toolpad/core";
+import type { Session, Router, Navigation } from "@toolpad/core";
 import { useState, useMemo, useEffect } from "react";
-import { useUser } from "../hooks/userContext";
+import { useUser } from "../hooks/useUser";
+import { useNavigate } from "react-router-dom";
+import { fetchProducts } from "../utils/api";
+import PaginatedTable from "../components/paginatedTable";
 
 const NAVIGATION: Navigation = [
   {
@@ -74,7 +77,40 @@ const demoTheme = createTheme({
   },
 });
 
-function DemoPageContent({ pathname }: { pathname: string }) {
+interface Product {
+  _id: string;
+  store: number;
+  dept: number;
+  size: number;
+  type: number;
+  date: string;
+}
+
+function DemoPageContent({
+  pathname,
+  products,
+}: {
+  pathname: string;
+  products: Product[];
+}) {
+  const columns: {
+    id: keyof Product;
+    label: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    format?: (value: any) => string;
+  }[] = [
+    { id: "_id", label: "Product ID" },
+    { id: "store", label: "Store" },
+    { id: "dept", label: "Department" },
+    { id: "size", label: "Size" },
+    { id: "type", label: "Type" },
+    {
+      id: "date",
+      label: "Date",
+      format: (value: Date) => new Date(value).toLocaleDateString(),
+    },
+  ];
+
   return (
     <Box
       sx={{
@@ -85,14 +121,30 @@ function DemoPageContent({ pathname }: { pathname: string }) {
         textAlign: "center",
       }}
     >
-      <Typography>Dashboard content for {pathname}</Typography>
+      <Typography variant="h4">Dashboard content for {pathname}</Typography>
+      <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>
+        {products.length === 0 ? (
+          <Typography>No products available.</Typography>
+        ) : (
+          <PaginatedTable<Product> columns={columns} data={products} />
+        )}
+      </Box>
     </Box>
   );
 }
 
 export default function DashboardLayoutBasic() {
+  const { user, logout } = useUser();
+  const [session, setSession] = useState<Session | null>({
+    user: {
+      name: user?.username,
+      email: user?.email,
+      image: user?.image,
+    },
+  });
   const [pathname, setPathname] = useState("/dashboard");
-  const { user } = useUser();
+  const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
   const router = useMemo<Router>(() => {
     return {
       pathname,
@@ -101,13 +153,40 @@ export default function DashboardLayoutBasic() {
     };
   }, [pathname]);
 
-  useEffect(() => {}, [pathname]);
+  const authentication = useMemo(() => {
+    return {
+      signIn: () => {
+        setSession({
+          user: {
+            name: user?.username,
+            email: user?.email,
+            image: user?.image,
+          },
+        });
+      },
+      signOut: () => {
+        setSession(null);
+        logout();
+        navigate("/signin");
+      },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchProducts().then((fetchedProducts) => {
+      console.log("Fetched products:", fetchedProducts);
+      setProducts(fetchedProducts);
+    });
+  }, [pathname]);
 
   return (
     <AppProvider
       navigation={NAVIGATION}
       router={router}
+      session={session}
       theme={demoTheme}
+      authentication={authentication}
       branding={{
         logo: (
           <img
@@ -125,7 +204,8 @@ export default function DashboardLayoutBasic() {
       }}
     >
       <DashboardLayout>
-        <DemoPageContent pathname={pathname} />
+        <DemoPageContent pathname={pathname} products={products} />{" "}
+        {/* Pass products to the component */}
       </DashboardLayout>
     </AppProvider>
   );
