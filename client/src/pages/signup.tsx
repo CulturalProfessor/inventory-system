@@ -12,6 +12,10 @@ import * as Yup from "yup";
 import { registerUser, loginUser, setAuthToken } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
+import { useUser } from "../hooks/userContext";
+import imageCompression from "browser-image-compression";
+
+const MAX_IMAGE_SIZE_MB = 0.1 * 1024 * 1024;
 
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -20,33 +24,104 @@ const validationSchema = Yup.object().shape({
   password: Yup.string()
     .min(8, "Password must be at least 8 characters")
     .required("Password is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  image: Yup.mixed()
+    .required("Image is required")
+    .test(
+      "fileSize",
+      "File size exceeds limit",
+      (value) => {
+        if (!value) return false;
+        return (value as File).size <= MAX_IMAGE_SIZE_MB
+      }
+    ),
 });
 
-const initialValues = {
+interface FormValues {
+  username: string;
+  password: string;
+  email: string;
+  image: File | undefined;
+}
+
+const initialValues: FormValues = {
   username: "",
   password: "",
+  email: "",
+  image: undefined,
 };
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleSubmit = async (
     values: typeof initialValues,
     { resetForm }: { resetForm: () => void }
   ) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(values.image as Blob);
+    reader.onload = async () => {
+      try {
+        const imageBase64 = reader.result as string;
+
+        await registerUser({
+          username: values.username,
+          password: values.password,
+          email: values.email,
+          image: imageBase64,
+        });
+
+        const loginResponse = await loginUser({
+          username: values.username,
+          password: values.password,
+        });
+
+        setAuthToken(loginResponse.token);
+        login({
+          username: values.username,
+          email: values.email,
+          id: loginResponse.id,
+          image: loginResponse.image,
+        });
+
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Error registering user:", error);
+        const errorMessage = (error as Error).message || "An unexpected error occurred.";
+        enqueueSnackbar(errorMessage, { variant: "error" });
+        resetForm();
+      }
+    };
+  };
+
+  const handleImageCompression = async (
+    file: File,
+    setFieldValue: (field: string, value: unknown) => void
+  ) => {
+    const options = {
+      maxSizeMB: MAX_IMAGE_SIZE_MB,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+    };
+
     try {
-      await registerUser(values);
+      const compressedFile = await imageCompression(file, options);
 
-      const loginResponse = await loginUser(values);
+      if (compressedFile.size > MAX_IMAGE_SIZE_MB) {
+        enqueueSnackbar(
+          `Image exceeds size limit after compression.`,
+          {
+            variant: "error",
+          }
+        );
+        return;
+      }
 
-      setAuthToken(loginResponse.token);
-      navigate("/dashboard");
+      setFieldValue("image", compressedFile);
     } catch (error) {
-      const customError = error as { message?: string };
-      const errorMessage =
-        customError.message || "An unexpected error occurred";
-      enqueueSnackbar(errorMessage, { variant: "error" });
-      resetForm();
+      setFieldValue("image",undefined);
+      enqueueSnackbar("Error compressing image", { variant: "error" });
     }
   };
 
@@ -62,7 +137,7 @@ const SignUp: React.FC = () => {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ errors, touched }) => (
+          {({ setFieldValue, errors, touched, values }) => (
             <Form>
               <Box mb={2}>
                 <Field
@@ -89,11 +164,60 @@ const SignUp: React.FC = () => {
                 />
               </Box>
 
+              <Box mb={2}>
+                <Field
+                  as={TextField}
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  variant="outlined"
+                  helperText={<ErrorMessage name="email" component="div" />}
+                  error={touched.email && !!errors.email}
+                />
+              </Box>
+
+              <Box mb={2}>
+                <input
+                  style={{ display: "none" }}
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={async (event) => {
+                    if (event.currentTarget.files) {
+                      const file = event.currentTarget.files[0];
+                      await handleImageCompression(file, setFieldValue);
+                    }
+                  }}
+                />
+                <label htmlFor="image-upload">
+                  <Button
+                    variant="contained"
+                    component="span"
+                    fullWidth
+                    color="primary"
+                  >
+                    Upload File
+                  </Button>
+                </label>
+                <ErrorMessage name="image" component="div" />
+                {values.image && (
+                  <Typography variant="body2" color="textSecondary" mt={1}>
+                    {values.image.name}
+                  </Typography>
+                )}
+              </Box>
+
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 color="primary"
+                disabled={
+                  !values.image ||
+                  !values.username ||
+                  !values.password ||
+                  !values.email
+                }
               >
                 Sign Up
               </Button>

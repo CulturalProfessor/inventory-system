@@ -26,7 +26,7 @@ export const setAuthToken = (token: string | null) => {
 
 interface CustomError {
   message: string;
-  status?: number; 
+  status?: number;
   data?: unknown;
 }
 
@@ -100,6 +100,8 @@ export const loginUser = async (data: {
 export const registerUser = async (data: {
   username: string;
   password: string;
+  email: string;
+  image: string
 }) => {
   return apiPost("/register", data);
 };

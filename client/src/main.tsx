@@ -7,18 +7,19 @@ import Login from "./pages/signin";
 import { SnackbarProvider } from "notistack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
+import { UserProvider } from "./hooks/userContext";
 
 // Create a custom theme
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#1976d2", // Customize the primary color
+      main: "#1976d2",
     },
     success: {
-      main: "#4caf50", // Customize success color
+      main: "#4caf50",
     },
     error: {
-      main: "#f44336", // Customize error color
+      main: "#f44336",
     },
   },
   typography: {
@@ -33,14 +34,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       maxSnack={3}
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
     >
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={"helpp"} />
-          <Route path="/signin" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<App />} />
-        </Routes>
-      </BrowserRouter>
+      <UserProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={"helpp"} />
+            <Route path="/signin" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/dashboard" element={<App />} />
+          </Routes>
+        </BrowserRouter>
+      </UserProvider>
     </SnackbarProvider>
   </ThemeProvider>
 );

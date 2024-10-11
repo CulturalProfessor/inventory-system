@@ -12,6 +12,7 @@ import * as Yup from "yup";
 import { loginUser, setAuthToken } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
+import { useUser } from "../hooks/userContext";
 
 const validationSchema = Yup.object().shape({
   username: Yup.string()
@@ -29,18 +30,20 @@ const initialValues = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useUser();
   const handleSubmit = async (values: typeof initialValues) => {
     try {
       const loginResponse = await loginUser(values);
-
-      setAuthToken(loginResponse.token);
-
+      const { token, user } = loginResponse;
+      setAuthToken(token);
+      console.log("Login successful:", user);
+      login({ username: user.username, id: user._id, });
       navigate("/dashboard");
     } catch (error) {
       const customError = error as { message?: string };
       const errorMessage =
         customError.message || "An unexpected error occurred";
-        enqueueSnackbar(errorMessage, { variant: "error" });
+      enqueueSnackbar(errorMessage, { variant: "error" });
       console.error("Login failed:", error);
     }
   };
