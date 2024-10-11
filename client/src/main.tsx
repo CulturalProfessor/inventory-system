@@ -8,6 +8,7 @@ import { SnackbarProvider } from "notistack";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { UserProvider } from "./hooks/userContext";
+import SignOut from "./components/signout";
 
 // Create a custom theme
 const theme = createTheme({
@@ -40,6 +41,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/" element={"helpp"} />
             <Route path="/signin" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/signout" element={<SignOut />} />
             <Route path="/dashboard" element={<App />} />
           </Routes>
         </BrowserRouter>

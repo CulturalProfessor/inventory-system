@@ -92,8 +92,7 @@ function DemoPageContent({ pathname }: { pathname: string }) {
 
 export default function DashboardLayoutBasic() {
   const [pathname, setPathname] = useState("/dashboard");
-  const user = useUser();
-  console.log(user);
+  const { user } = useUser();
   const router = useMemo<Router>(() => {
     return {
       pathname,

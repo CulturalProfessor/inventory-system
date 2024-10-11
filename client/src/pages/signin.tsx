@@ -37,8 +37,12 @@ const Login: React.FC = () => {
       const { token, user } = loginResponse;
       setAuthToken(token);
       console.log("Login successful:", user);
-      login({ username: user.username, id: user._id, });
-      navigate("/dashboard");
+      login({
+        username: user.username,
+        email: user.email,
+        id: user._id,
+        image: user.image,
+      });      navigate("/dashboard");
     } catch (error) {
       const customError = error as { message?: string };
       const errorMessage =
