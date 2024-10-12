@@ -18,7 +18,6 @@ interface PredictedProduct extends Product {
 }
 
 function PredictedProductContent({
-  pathname,
   products,
 }: {
   pathname: string;
@@ -47,9 +46,6 @@ function PredictedProductContent({
     },
   ];
 
-  const getLink = (row: { _id: string }) =>
-    `/dashboard/predicted-products/${row._id}`;
-
   useEffect(() => {
     async function fetchPredictedProducts() {
       try {
@@ -67,10 +63,6 @@ function PredictedProductContent({
           ...product,
           predictedSales: response.predicted_sales[index],
         }));
-        console.log("response:", response);
-        console.log("products:", products);
-        console.log("Predicted products:", updatedProducts);
-
         setPredictedProducts(updatedProducts);
       } catch (error) {
         console.error("Failed to fetch predicted products:", error);
@@ -91,7 +83,7 @@ function PredictedProductContent({
         textAlign: "center",
       }}
     >
-      <Typography variant="h4">Dashboard content for {pathname}</Typography>
+      <Typography variant="h4">Predicted Products</Typography>
       <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>
         {predictedProducts.length === 0 ? (
           <Typography>No predicted products available.</Typography>
@@ -99,7 +91,6 @@ function PredictedProductContent({
           <PaginatedTable<PredictedProduct>
             columns={columns}
             data={predictedProducts}
-            getLink={getLink}
           />
         )}
       </Box>

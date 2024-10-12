@@ -58,7 +58,7 @@ const Login: React.FC = () => {
     <Container component="main" maxWidth="xs">
       <Paper elevation={3} sx={{ padding: 3, marginTop: 4 }}>
         <Typography variant="h5" component="h1" gutterBottom>
-          Login
+          Sign In
         </Typography>
         <Formik
           initialValues={initialValues}

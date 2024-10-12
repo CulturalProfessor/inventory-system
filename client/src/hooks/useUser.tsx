@@ -4,6 +4,7 @@ import {
   getUserLocal,
   removeAuthToken,
   removeUser,
+  setAuthHeader,
   setAuthToken,
   setUserLocal,
   User,
@@ -27,6 +28,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const login = (user: User, token: string) => {
     setAuthToken(token);
+    setAuthHeader();
     setUserLocal(user);
     setUser(user);
   };

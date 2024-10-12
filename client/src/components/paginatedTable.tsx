@@ -9,26 +9,23 @@ import {
   TableRow,
   TablePagination,
 } from "@mui/material";
-import { Link } from "react-router-dom"; // Import Link
 
 interface Column<T> {
-  id: keyof T; // Key in the data object
-  label: string; // Column label
-  format?: (value: unknown) => string; // Optional format function
+  id: keyof T; 
+  label: string; 
+  format?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
 interface PaginatedTableProps<T> {
-  columns: Column<T>[]; // Columns definition
-  data: T[]; // Data to display
-  rowsPerPageOptions?: number[]; // Pagination options
-  getLink: (row: T) => string; // Function to generate link for each row
+  columns: Column<T>[]; 
+  data: T[]; 
+  rowsPerPageOptions?: number[]; 
 }
 
 function PaginatedTable<T>({
   columns,
   data,
-  rowsPerPageOptions = [ 10, 25],
-  getLink,
+  rowsPerPageOptions = [10, 25],
 }: PaginatedTableProps<T>) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
@@ -58,24 +55,15 @@ function PaginatedTable<T>({
           <TableBody>
             {data
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <TableRow key={index} hover>
-                  <Link
-                    to={getLink(row)}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                      display: "contents",
-                    }}
-                  >
-                    {columns.map((column) => (
-                      <TableCell key={column.id as string}>
-                        {column.format
-                          ? (column.format(row[column.id]) as React.ReactNode)
-                          : (row[column.id] as React.ReactNode)}
-                      </TableCell>
-                    ))}
-                  </Link>
+              .map((row, rowIndex) => (
+                <TableRow key={rowIndex} hover>
+                  {columns.map((column, colIndex) => (
+                    <TableCell key={colIndex}>
+                      {column.format
+                        ? column.format(row[column.id], row)
+                        : (row[column.id] as React.ReactNode)}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
           </TableBody>

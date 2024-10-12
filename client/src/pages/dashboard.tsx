@@ -13,6 +13,7 @@ import OnlinePredictionIcon from "@mui/icons-material/OnlinePrediction";
 import PredictedProductContent from "../components/predictedProducts";
 import ProductContent from "../components/productContent";
 import { fetchProducts } from "../utils/api";
+import { Box, Typography, Button } from "@mui/material";
 
 const NAVIGATION: Navigation = [
   {
@@ -87,16 +88,21 @@ interface Product {
 
 export default function DashboardLayoutBasic() {
   const { user, logout } = useUser();
-  const [session, setSession] = useState<Session | null>({
-    user: {
-      name: user?.username,
-      email: user?.email,
-      image: user?.image,
-    },
-  });
+  const [session, setSession] = useState<Session | null>(
+    user
+      ? {
+          user: {
+            name: user?.username,
+            email: user?.email,
+            image: user?.image,
+          },
+        }
+      : null
+  );
   const [pathname, setPathname] = useState("/dashboard");
   const [products, setProducts] = useState<Product[]>([]);
   const navigate = useNavigate();
+  
   const router = useMemo<Router>(() => {
     return {
       pathname,
@@ -122,14 +128,82 @@ export default function DashboardLayoutBasic() {
         navigate("/signin");
       },
     };
-  }, [logout, navigate, user?.email, user?.image, user?.username]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    fetchProducts().then((fetchedProducts) => {
-      setProducts(fetchedProducts);
-    });
-  }, [pathname]);
+    console.log("Session changed:", session);
+    if (session) {
+      fetchProducts().then((fetchedProducts) => {
+        setProducts(fetchedProducts);
+      });
+    }
+  }, [pathname, session]);
 
+  // Check if the user is not signed in
+  if (!session) {
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "background.default",
+          padding: 4,
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 400,
+            width: "100%",
+            backgroundColor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 3,
+            padding: 4,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            Welcome Back!
+          </Typography>
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            You are signed out. Please sign in to continue accessing your dashboard.
+          </Typography>
+  
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={() => navigate("/signin")}
+            sx={{
+              mt: 3,
+              px: 5,
+              py: 1.5,
+              borderRadius: "20px",
+              textTransform: "none",
+            }}
+          >
+            Sign In
+          </Button>
+  
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Don’t have an account?{" "}
+            <Button
+              variant="text"
+              color="primary"
+              onClick={() => navigate("/signup")}
+            >
+              Sign up
+            </Button>
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+  
+
+  // If the user is signed in, render the dashboard
   return (
     <AppProvider
       navigation={NAVIGATION}
@@ -155,16 +229,9 @@ export default function DashboardLayoutBasic() {
     >
       <DashboardLayout>
         {pathname.includes("predicted-products") ? (
-          <PredictedProductContent
-            pathname={pathname}
-            products={products}
-          />
+          <PredictedProductContent pathname={pathname} products={products} />
         ) : (
-          <ProductContent
-            pathname={pathname}
-            products={products}
-            setProducts={setProducts}
-          />
+          <ProductContent pathname={pathname} products={products} setProducts={setProducts} />
         )}
       </DashboardLayout>
     </AppProvider>

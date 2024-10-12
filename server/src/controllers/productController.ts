@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Product from "../schema/productSchema";
 import axios from "axios";
+import { ObjectId } from "mongodb";
 
 export const addProduct = async (req: Request, res: Response) => {
   try {
@@ -36,16 +37,20 @@ export const getProducts = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
     const { _id } = req.body;
-    const products = await Product.find({ _id });
-    if (products.length == 0) {
-      return res.status(401).json({ message: "Product not found" });
-    } else {
-      await Product.deleteOne({ _id });
-      return res.status(200).json({ message: "Product deleted successfully" });
+    const product_id = new ObjectId(_id);
+    const product = await Product.find(product_id);
+    console.log(product);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
+
+    await Product.deleteOne({ _id: product_id });
+    return res
+      .status(200)
+      .json({ message: "Product deleted successfully", deleted: true });
   } catch (error) {
     console.error(error);
-    res.status(404).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

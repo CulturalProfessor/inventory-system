@@ -1,10 +1,25 @@
-import { Box, Typography, Modal, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Modal,
+  Button,
+  TextField,
+  Grid,
+  Alert,
+  IconButton,
+} from "@mui/material";
 import { useState } from "react";
-import { Product, addNewProduct } from "../utils/api";
+import {
+  Product,
+  addNewProduct,
+  updateProduct,
+  deleteProduct,
+} from "../utils/api";
 import PaginatedTable from "./paginatedTable";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function ProductContent({
-  pathname,
   products,
   setProducts,
 }: {
@@ -19,8 +34,10 @@ export default function ProductContent({
     size: 0,
     type: 0,
   });
-
+  const [editMode, setEditMode] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,17 +47,65 @@ export default function ProductContent({
     }));
   };
 
-  const handleAddProduct = async () => {
+  const handleAddOrUpdateProduct = async () => {
     try {
       setError(null);
-      const { product } = (await addNewProduct(productDetails)) as {
-        product: Product;
-      };
-      setProducts([...products, product]);
+      setLoading(true);
+      if (editMode && selectedProduct) {
+        // Update product
+        await updateProduct({ _id: selectedProduct._id, ...productDetails });
+        setProducts(
+          products.map((p) =>
+            p._id === selectedProduct._id ? { ...p, ...productDetails } : p
+          )
+        );
+      } else {
+        // Add new product
+        const { product } = (await addNewProduct(productDetails)) as {
+          product: Product;
+        };
+        setProducts([...products, product]);
+      }
       setShowModal(false);
     } catch (err) {
-      setError("Failed to add product. Please try again.");
+      setError(
+        editMode ? "Failed to update product." : "Failed to add product."
+      );
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const response = await deleteProduct({ _id: productId });
+      if (response.deleted) {
+        setProducts(products.filter((product) => product._id !== productId));
+      } else {
+        setError("Failed to delete product.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete product.");
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setProductDetails({
+      store: product.store,
+      dept: product.dept,
+      size: product.size,
+      type: product.type,
+    });
+    setSelectedProduct(product);
+    setEditMode(true);
+    setShowModal(true);
+  };
+
+  const handleOpenAddModal = () => {
+    setProductDetails({ store: 0, dept: 0, size: 0, type: 0 });
+    setEditMode(false);
+    setShowModal(true);
   };
 
   const columns = [
@@ -54,9 +119,21 @@ export default function ProductContent({
       label: "Date",
       format: (value: Date) => new Date(value).toLocaleDateString(),
     },
+    {
+      id: "actions",
+      label: "Actions",
+      format: (_value: unknown, row: Product) => (
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton onClick={() => handleEditProduct(row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDeleteProduct(row._id)}>
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      ),
+    },
   ];
-
-  const getLink = (row: { _id: string }) => `/dashboard/products/${row._id}`;
 
   return (
     <Box
@@ -68,8 +145,7 @@ export default function ProductContent({
         textAlign: "center",
       }}
     >
-      <Typography variant="h4">Dashboard content for {pathname}</Typography>
-
+      {/* Modal for Adding/Updating Product */}
       <Modal open={showProductModal} onClose={() => setShowModal(false)}>
         <Box
           sx={{
@@ -85,55 +161,73 @@ export default function ProductContent({
           }}
         >
           <Typography variant="h5" sx={{ mb: 2 }}>
-            Add a New Product
+            {editMode ? "Update Product" : "Add a New Product"}
           </Typography>
 
-          {error && <Typography color="error">{error}</Typography>}
+          {error && <Alert severity="error">{error}</Alert>}
 
-          <Box
-            component="form"
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
-            <input
-              type="number"
-              name="store"
-              placeholder="Store"
-              value={productDetails.store}
-              onChange={handleInputChange}
-            />
-            <input
-              type="number"
-              name="dept"
-              placeholder="Department"
-              value={productDetails.dept}
-              onChange={handleInputChange}
-            />
-            <input
-              type="number"
-              name="size"
-              placeholder="Size"
-              value={productDetails.size}
-              onChange={handleInputChange}
-            />
-            <input
-              type="number"
-              name="type"
-              placeholder="Type"
-              value={productDetails.type}
-              onChange={handleInputChange}
-            />
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="Store"
+                type="number"
+                name="store"
+                value={productDetails.store}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Department"
+                type="number"
+                name="dept"
+                value={productDetails.dept}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Size"
+                type="number"
+                name="size"
+                value={productDetails.size}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Type"
+                type="number"
+                name="type"
+                value={productDetails.type}
+                onChange={handleInputChange}
+                fullWidth
+              />
+            </Grid>
+          </Grid>
 
+          <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
             <Button
               variant="contained"
               color="primary"
-              onClick={handleAddProduct}
+              onClick={handleAddOrUpdateProduct}
+              disabled={loading}
+              fullWidth
             >
-              Add Product
+              {loading
+                ? "Processing..."
+                : editMode
+                  ? "Update Product"
+                  : "Add Product"}
             </Button>
             <Button
               variant="outlined"
               color="secondary"
               onClick={() => setShowModal(false)}
+              fullWidth
             >
               Close
             </Button>
@@ -141,15 +235,32 @@ export default function ProductContent({
         </Box>
       </Modal>
 
-      <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>
-        <Button onClick={() => setShowModal(true)}>Add Product</Button>
+      <Box
+        sx={{
+          display: "flex",
+
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: 800,
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5">Product List</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenAddModal}
+        >
+          Add Product
+        </Button>
       </Box>
 
       <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>
         {products.length === 0 ? (
           <Typography>No products available.</Typography>
         ) : (
-          <PaginatedTable columns={columns} data={products} getLink={getLink} />
+          <PaginatedTable columns={columns} data={products}/>
         )}
       </Box>
     </Box>

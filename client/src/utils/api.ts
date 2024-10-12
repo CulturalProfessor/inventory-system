@@ -42,6 +42,11 @@ const api = axios.create({
   },
 });
 
+export const setAuthHeader = () => {
+  const token = getAuthToken();
+  api.defaults.headers["Authorization"] = `Bearer ${token}`;
+}
+
 interface CustomError {
   message: string;
   status?: number;
@@ -166,7 +171,7 @@ export const updateProduct = async (data: {
   return apiPost("/product/update", data);
 };
 
-export const deleteProduct = async (data: { id: string }) => {
+export const deleteProduct = async (data: { _id: string }) => {
   return apiDelete("/product/delete", { data });
 };
 
