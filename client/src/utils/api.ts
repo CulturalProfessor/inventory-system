@@ -145,9 +145,10 @@ export const registerUser = async (data: {
 };
 
 export const addNewProduct = async (data: {
-  name: string;
-  price: number;
-  description: string;
+  store: number;
+  dept: number;
+  size: number;
+  type: number;
 }) => {
   return apiPost("/product/add", data);
 };
@@ -157,10 +158,10 @@ export const fetchProducts = async () => {
 };
 
 export const updateProduct = async (data: {
-  id: string;
-  name?: string;
-  price?: number;
-  description?: string;
+  _id: string;
+  store?: number;
+  dept?: number;
+  size?: number;
 }) => {
   return apiPost("/product/update", data);
 };
@@ -169,6 +170,6 @@ export const deleteProduct = async (data: { id: string }) => {
   return apiDelete("/product/delete", { data });
 };
 
-export const predictProduct = async (data:ProductToPredict[] ) => {
+export const predictProduct = async (data: ProductToPredict[]) => {
   return apiPost("/product/predict", data);
 };

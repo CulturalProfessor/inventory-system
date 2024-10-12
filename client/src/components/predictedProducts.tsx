@@ -37,8 +37,8 @@ function PredictedProductContent({
     { id: "_id", label: "Product ID" },
     { id: "store", label: "Store" },
     { id: "dept", label: "Department" },
-    { id: "size", label: "Size" },
     { id: "type", label: "Type" },
+    { id: "size", label: "Size" },
     { id: "predictedSales", label: "Predicted Sales" },
     {
       id: "date",
@@ -58,15 +58,18 @@ function PredictedProductContent({
             ...product,
             isholiday: 0,
             week: 1,
-            year: 2012,
+            year: 2021,
           })
         );
 
         const response = await predictProduct(productsToPredict);
-        const updatedProducts = predictedProducts.map((product, index) => ({
+        const updatedProducts = products.map((product, index) => ({
           ...product,
-          predictedSales: response.data.predicted_sales[index],
+          predictedSales: response.predicted_sales[index],
         }));
+        console.log("response:", response);
+        console.log("products:", products);
+        console.log("Predicted products:", updatedProducts);
 
         setPredictedProducts(updatedProducts);
       } catch (error) {

@@ -1,5 +1,3 @@
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import { createTheme } from "@mui/material/styles";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import BarChartIcon from "@mui/icons-material/BarChart";
@@ -11,10 +9,10 @@ import type { Session, Router, Navigation } from "@toolpad/core";
 import { useState, useMemo, useEffect } from "react";
 import { useUser } from "../hooks/useUser";
 import { useNavigate } from "react-router-dom";
-import { fetchProducts } from "../utils/api";
-import PaginatedTable from "../components/paginatedTable";
 import OnlinePredictionIcon from "@mui/icons-material/OnlinePrediction";
 import PredictedProductContent from "../components/predictedProducts";
+import ProductContent from "../components/productContent";
+import { fetchProducts } from "../utils/api";
 
 const NAVIGATION: Navigation = [
   {
@@ -87,58 +85,6 @@ interface Product {
   date: string;
 }
 
-function ProductContent({
-  pathname,
-  products,
-}: {
-  pathname: string;
-  products: Product[];
-}) {
-  const columns: {
-    id: keyof Product;
-    label: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    format?: (value: any) => string;
-  }[] = [
-    { id: "_id", label: "Product ID" },
-    { id: "store", label: "Store" },
-    { id: "dept", label: "Department" },
-    { id: "size", label: "Size" },
-    { id: "type", label: "Type" },
-    {
-      id: "date",
-      label: "Date",
-      format: (value: Date) => new Date(value).toLocaleDateString(),
-    },
-  ];
-  const getLink = (row: { _id: string }) => `/dashboard/products/${row._id}`;
-
-  return (
-    <Box
-      sx={{
-        py: 4,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-      }}
-    >
-      <Typography variant="h4">Dashboard content for {pathname}</Typography>
-      <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>
-        {products.length === 0 ? (
-          <Typography>No products available.</Typography>
-        ) : (
-          <PaginatedTable<Product>
-            columns={columns}
-            data={products}
-            getLink={getLink}
-          />
-        )}
-      </Box>
-    </Box>
-  );
-}
-
 export default function DashboardLayoutBasic() {
   const { user, logout } = useUser();
   const [session, setSession] = useState<Session | null>({
@@ -209,9 +155,16 @@ export default function DashboardLayoutBasic() {
     >
       <DashboardLayout>
         {pathname.includes("predicted-products") ? (
-          <PredictedProductContent pathname={pathname} products={products} />
+          <PredictedProductContent
+            pathname={pathname}
+            products={products}
+          />
         ) : (
-          <ProductContent pathname={pathname} products={products} />
+          <ProductContent
+            pathname={pathname}
+            products={products}
+            setProducts={setProducts}
+          />
         )}
       </DashboardLayout>
     </AppProvider>

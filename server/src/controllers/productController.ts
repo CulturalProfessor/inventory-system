@@ -16,7 +16,7 @@ export const addProduct = async (req: Request, res: Response) => {
     });
     await product.save();
 
-    res.status(201).json({ message: "Product added successfully" });
+    res.status(201).json({ message: "Product added successfully", product });
   } catch (error) {
     console.error(error);
     res.status(404).json({ message: "Internal server error" });
@@ -75,10 +75,12 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const predictProduct = async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
-    const response = await axios.post(
-      "http://model:8000/predictSales",
-      req.body
+    const response = await axios.post("http://model:8000/predictSales", {
+      products: req.body,
+    });
+
+    response.data.predicted_sales = response.data.predicted_sales.map(
+      (value: number) => Math.round(value)
     );
 
     res.json(response.data);
