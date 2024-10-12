@@ -57,6 +57,11 @@ export interface Product {
   date: string;
 }
 
+export interface ProductToPredict extends Product {
+  isholiday: number;
+  week: number;
+  year: number;
+}
 export interface User {
   username: string;
   id?: string;
@@ -164,6 +169,6 @@ export const deleteProduct = async (data: { id: string }) => {
   return apiDelete("/product/delete", { data });
 };
 
-export const predictProduct = async (data: { id: string }) => {
+export const predictProduct = async (data:ProductToPredict[] ) => {
   return apiPost("/product/predict", data);
 };

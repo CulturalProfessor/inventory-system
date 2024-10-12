@@ -1,4 +1,3 @@
-// CustomAlert.tsx
 import { forwardRef } from "react";
 import MuiAlert, { AlertProps } from "@mui/material/Alert";
 

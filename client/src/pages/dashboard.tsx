@@ -2,7 +2,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { createTheme } from "@mui/material/styles";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LayersIcon from "@mui/icons-material/Layers";
@@ -14,6 +13,8 @@ import { useUser } from "../hooks/useUser";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../utils/api";
 import PaginatedTable from "../components/paginatedTable";
+import OnlinePredictionIcon from "@mui/icons-material/OnlinePrediction";
+import PredictedProductContent from "../components/predictedProducts";
 
 const NAVIGATION: Navigation = [
   {
@@ -21,14 +22,14 @@ const NAVIGATION: Navigation = [
     title: "Main items",
   },
   {
-    segment: "dashboard",
-    title: "Dashboard",
+    segment: "products",
+    title: "Products",
     icon: <DashboardIcon />,
   },
   {
-    segment: "orders",
-    title: "Orders",
-    icon: <ShoppingCartIcon />,
+    segment: "predicted-products",
+    title: "Predicted Products",
+    icon: <OnlinePredictionIcon />,
   },
   {
     kind: "divider",
@@ -86,7 +87,7 @@ interface Product {
   date: string;
 }
 
-function DemoPageContent({
+function ProductContent({
   pathname,
   products,
 }: {
@@ -110,6 +111,7 @@ function DemoPageContent({
       format: (value: Date) => new Date(value).toLocaleDateString(),
     },
   ];
+  const getLink = (row: { _id: string }) => `/dashboard/products/${row._id}`;
 
   return (
     <Box
@@ -126,7 +128,11 @@ function DemoPageContent({
         {products.length === 0 ? (
           <Typography>No products available.</Typography>
         ) : (
-          <PaginatedTable<Product> columns={columns} data={products} />
+          <PaginatedTable<Product>
+            columns={columns}
+            data={products}
+            getLink={getLink}
+          />
         )}
       </Box>
     </Box>
@@ -170,12 +176,10 @@ export default function DashboardLayoutBasic() {
         navigate("/signin");
       },
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [logout, navigate, user?.email, user?.image, user?.username]);
 
   useEffect(() => {
     fetchProducts().then((fetchedProducts) => {
-      console.log("Fetched products:", fetchedProducts);
       setProducts(fetchedProducts);
     });
   }, [pathname]);
@@ -204,8 +208,11 @@ export default function DashboardLayoutBasic() {
       }}
     >
       <DashboardLayout>
-        <DemoPageContent pathname={pathname} products={products} />{" "}
-        {/* Pass products to the component */}
+        {pathname.includes("predicted-products") ? (
+          <PredictedProductContent pathname={pathname} products={products} />
+        ) : (
+          <ProductContent pathname={pathname} products={products} />
+        )}
       </DashboardLayout>
     </AppProvider>
   );

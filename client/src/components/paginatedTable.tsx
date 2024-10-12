@@ -9,6 +9,7 @@ import {
   TableRow,
   TablePagination,
 } from "@mui/material";
+import { Link } from "react-router-dom"; // Import Link
 
 interface Column<T> {
   id: keyof T; // Key in the data object
@@ -20,17 +21,19 @@ interface PaginatedTableProps<T> {
   columns: Column<T>[]; // Columns definition
   data: T[]; // Data to display
   rowsPerPageOptions?: number[]; // Pagination options
+  getLink: (row: T) => string; // Function to generate link for each row
 }
 
 function PaginatedTable<T>({
   columns,
   data,
-  rowsPerPageOptions = [5, 10, 25],
+  rowsPerPageOptions = [ 10, 25],
+  getLink,
 }: PaginatedTableProps<T>) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -56,14 +59,23 @@ function PaginatedTable<T>({
             {data
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => (
-                <TableRow key={index}>
-                  {columns.map((column) => (
-                    <TableCell key={column.id as string}>
-                      {column.format
-                        ? (column.format(row[column.id]) as React.ReactNode)
-                        : (row[column.id] as React.ReactNode)}
-                    </TableCell>
-                  ))}
+                <TableRow key={index} hover>
+                  <Link
+                    to={getLink(row)}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "contents",
+                    }}
+                  >
+                    {columns.map((column) => (
+                      <TableCell key={column.id as string}>
+                        {column.format
+                          ? (column.format(row[column.id]) as React.ReactNode)
+                          : (row[column.id] as React.ReactNode)}
+                      </TableCell>
+                    ))}
+                  </Link>
                 </TableRow>
               ))}
           </TableBody>

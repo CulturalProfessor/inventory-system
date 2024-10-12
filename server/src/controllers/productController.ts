@@ -75,6 +75,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const predictProduct = async (req: Request, res: Response) => {
   try {
+    console.log(req.body);
     const response = await axios.post(
       "http://model:8000/predictSales",
       req.body

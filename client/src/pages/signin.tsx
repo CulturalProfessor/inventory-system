@@ -10,7 +10,7 @@ import {
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { loginUser } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
 import { useUser } from "../hooks/useUser";
 
@@ -91,7 +91,17 @@ const Login: React.FC = () => {
                   error={touched.password && !!errors.password}
                 />
               </Box>
-
+              <Box mb={2} textAlign="center">
+                <Typography variant="body2" color="textSecondary" mt={1}>
+                  Don't have an account?{" "}
+                  <Link
+                    to="/signup"
+                    style={{ textDecoration: "none", color: "#1976d2" }}
+                  >
+                    SignUp
+                  </Link>
+                </Typography>
+              </Box>
               <Button
                 type="submit"
                 fullWidth

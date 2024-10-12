@@ -26,15 +26,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   });
 
   const login = (user: User, token: string) => {
-    setUser(user);
-    setUserLocal(user);
     setAuthToken(token);
+    setUserLocal(user);
+    setUser(user);
   };
 
   const logout = () => {
-    setUser(null);
-    removeUser();
     removeAuthToken();
+    removeUser();
+    setUser(null);
   };
 
   return (

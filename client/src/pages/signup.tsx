@@ -10,7 +10,7 @@ import {
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { registerUser, loginUser } from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { enqueueSnackbar } from "notistack";
 import { useUser } from "../hooks/useUser";
 import imageCompression from "browser-image-compression";
@@ -75,10 +75,10 @@ const SignUp: React.FC = () => {
 
         login(
           {
+            id: loginResponse.user._id,
             username: values.username,
             email: values.email,
-            id: loginResponse.id,
-            image: loginResponse.image,
+            image: imageBase64,
           },
           loginResponse.token
         );
@@ -202,7 +202,17 @@ const SignUp: React.FC = () => {
                   </Typography>
                 )}
               </Box>
-
+              <Box mb={2} textAlign="center">
+                <Typography variant="body2" color="textSecondary" mt={1}>
+                  Have an account?{" "}
+                  <Link
+                    to="/signin"
+                    style={{ textDecoration: "none", color: "#1976d2" }}
+                  >
+                    SignIn
+                  </Link>
+                </Typography>
+              </Box>
               <Button
                 type="submit"
                 fullWidth
