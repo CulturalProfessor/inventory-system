@@ -9,17 +9,12 @@ import {
   TableRow,
   TablePagination,
 } from "@mui/material";
-
-interface Column<T> {
-  id: keyof T; 
-  label: string; 
-  format?: (value: T[keyof T], row: T) => React.ReactNode;
-}
+import { Column } from "../utils/commonTypes";
 
 interface PaginatedTableProps<T> {
-  columns: Column<T>[]; 
-  data: T[]; 
-  rowsPerPageOptions?: number[]; 
+  columns: Column<T>[];
+  data: T[];
+  rowsPerPageOptions?: number[];
 }
 
 function PaginatedTable<T>({
@@ -60,7 +55,7 @@ function PaginatedTable<T>({
                   {columns.map((column, colIndex) => (
                     <TableCell key={colIndex}>
                       {column.format
-                        ? column.format(row[column.id], row)
+                        ? column.format(row[column.id] as string | number, row)
                         : (row[column.id] as React.ReactNode)}
                     </TableCell>
                   ))}

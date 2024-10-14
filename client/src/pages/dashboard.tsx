@@ -140,7 +140,6 @@ export default function DashboardLayoutBasic() {
     }
   }, [pathname, session]);
 
-  // Check if the user is not signed in
   if (!session) {
     return (
       <Box
@@ -203,7 +202,6 @@ export default function DashboardLayoutBasic() {
   }
   
 
-  // If the user is signed in, render the dashboard
   return (
     <AppProvider
       navigation={NAVIGATION}

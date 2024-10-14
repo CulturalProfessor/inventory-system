@@ -7,8 +7,8 @@ import {
   setAuthHeader,
   setAuthToken,
   setUserLocal,
-  User,
 } from "../utils/api";
+import { User } from "../utils/commonTypes";
 
 interface UserContextType {
   user: User | null;

@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import {
-  Product,
   addNewProduct,
   updateProduct,
   deleteProduct,
@@ -18,6 +17,7 @@ import {
 import PaginatedTable from "./paginatedTable";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { Column, Product } from "../utils/commonTypes";
 
 export default function ProductContent({
   products,
@@ -108,19 +108,40 @@ export default function ProductContent({
     setShowModal(true);
   };
 
-  const columns = [
-    { id: "_id", label: "Product ID" },
-    { id: "store", label: "Store" },
-    { id: "dept", label: "Department" },
-    { id: "size", label: "Size" },
-    { id: "type", label: "Type" },
+  const columns: Column<Product>[] = [
+    {
+      id: "_id",
+      label: "Product ID",
+      format: (value: string | number) => String(value),
+    },
+    {
+      id: "store",
+      label: "Store",
+      format: (value: string | number) => String(value),
+    },
+    {
+      id: "dept",
+      label: "Department",
+      format: (value: string | number) => String(value),
+    },
+    {
+      id: "size",
+      label: "Size",
+      format: (value: string | number) => String(value),
+    },
+    {
+      id: "type",
+      label: "Type",
+      format: (value: string | number) => String(value),
+    },
     {
       id: "date",
       label: "Date",
-      format: (value: Date) => new Date(value).toLocaleDateString(),
+      format: (value: string | number | Date) =>
+        new Date(value).toLocaleDateString().toString(),
     },
     {
-      id: "actions",
+      id: "actions" as keyof Product,
       label: "Actions",
       format: (_value: unknown, row: Product) => (
         <Box sx={{ display: "flex", gap: 1 }}>
@@ -260,7 +281,7 @@ export default function ProductContent({
         {products.length === 0 ? (
           <Typography>No products available.</Typography>
         ) : (
-          <PaginatedTable columns={columns} data={products}/>
+          <PaginatedTable columns={columns} data={products} />
         )}
       </Box>
     </Box>

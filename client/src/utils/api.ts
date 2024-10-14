@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User, CustomError, ProductToPredict } from "./commonTypes";
 
 const environment = process.env.NODE_ENV;
 
@@ -47,32 +48,9 @@ export const setAuthHeader = () => {
   api.defaults.headers["Authorization"] = `Bearer ${token}`;
 }
 
-interface CustomError {
-  message: string;
-  status?: number;
-  data?: unknown;
-}
 
-export interface Product {
-  _id: string;
-  store: number;
-  dept: number;
-  size: number;
-  type: number;
-  date: string;
-}
 
-export interface ProductToPredict extends Product {
-  isholiday: number;
-  week: number;
-  year: number;
-}
-export interface User {
-  username: string;
-  id?: string;
-  image?: string;
-  email?: string;
-}
+
 // Handle errors from API calls
 const handleError = (error: unknown): CustomError => {
   const customError: CustomError = {
