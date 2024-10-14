@@ -5,23 +5,33 @@ import User from "../schema/userSchema";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
-export const loginRoutes = async (req: Request, res: Response) => {
+export const loginRoutes = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  // Change return type to Promise<void>
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
 
     if (!user) {
-      return res.status(401).json({ message: "Authentication failed" });
+      res.status(401).json({ message: "Authentication failed" });
+      return; // Return early
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Authentication failed" });
+      res.status(401).json({ message: "Authentication failed" });
+      return; // Return early
     }
 
-    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, {
-      expiresIn: "5h",
-    });
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      JWT_SECRET,
+      {
+        expiresIn: "5h",
+      }
+    );
 
     res.status(200).json({ message: "Login successful", token, user });
   } catch (error) {
@@ -30,13 +40,17 @@ export const loginRoutes = async (req: Request, res: Response) => {
   }
 };
 
-export const registerRoutes = async (req: Request, res: Response) => {
+export const registerRoutes = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { username, password, email, image } = req.body;
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({ message: "Username already exists" });
+      res.status(400).json({ message: "Username already exists" });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -57,7 +71,8 @@ export const registerRoutes = async (req: Request, res: Response) => {
   }
 };
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
+  // Change return type to Promise<void>
   try {
     const users = await User.find();
     res.json(users);
