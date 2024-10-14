@@ -156,3 +156,11 @@ export const deleteProduct = async (data: { _id: string }) => {
 export const predictProduct = async (data: ProductToPredict[]) => {
   return apiPost("/product/predict", data);
 };
+
+export const uploadCSV = async (data: FormData) => {
+  return apiPost("/product/uploadData", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};

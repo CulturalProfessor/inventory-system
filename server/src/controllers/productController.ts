@@ -93,3 +93,39 @@ export const predictProduct = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const uploadCSV = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const csvData: Record<string, string>[] = [];
+    const fileContent = req.file.buffer.toString("utf-8");
+    const lines = fileContent.split("\n");
+    const headers = lines[0].split(",");
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const values = line.split(",");
+      const row: Record<string, string> = {};
+      headers.forEach((header, index) => {
+        row[header.trim()] = values[index]?.trim() || "";
+      });
+      csvData.push(row);
+    }
+    const response = await axios.post("http://model:8000/uploadData", {
+      data: csvData,
+    });
+
+    res.status(200).json({
+      message: "CSV file processed successfully",
+      success: response.data.success,
+      data: response.data,
+    });
+  } catch (error) {
+    console.error("Error processing the file");
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -14,6 +14,7 @@ import PredictedProductContent from "../components/predictedProducts";
 import ProductContent from "../components/productContent";
 import { fetchProducts } from "../utils/api";
 import { Box, Typography, Button } from "@mui/material";
+import UploadCSV from "../components/uploadCSV";
 
 const NAVIGATION: Navigation = [
   {
@@ -38,6 +39,11 @@ const NAVIGATION: Navigation = [
     title: "Analytics",
   },
   {
+    segment: "upload-inventory-data",
+    title: "Upload Inventory Data",
+    icon: <LayersIcon />,
+  },
+  {
     segment: "reports",
     title: "Reports",
     icon: <BarChartIcon />,
@@ -53,11 +59,6 @@ const NAVIGATION: Navigation = [
         icon: <DescriptionIcon />,
       },
     ],
-  },
-  {
-    segment: "integrations",
-    title: "Integrations",
-    icon: <LayersIcon />,
   },
 ];
 
@@ -102,7 +103,7 @@ export default function DashboardLayoutBasic() {
   const [pathname, setPathname] = useState("/dashboard");
   const [products, setProducts] = useState<Product[]>([]);
   const navigate = useNavigate();
-  
+
   const router = useMemo<Router>(() => {
     return {
       pathname,
@@ -110,6 +111,24 @@ export default function DashboardLayoutBasic() {
       navigate: (path) => setPathname(String(path)),
     };
   }, [pathname]);
+
+  const renderAccordingToPath = () => {
+    if (pathname.includes("predicted-products")) {
+      return (
+        <PredictedProductContent pathname={pathname} products={products} />
+      );
+    } else if (pathname.includes("upload-inventory-data")) {
+      return <UploadCSV />;
+    } else {
+      return (
+        <ProductContent
+          pathname={pathname}
+          products={products}
+          setProducts={setProducts}
+        />
+      );
+    }
+  };
 
   const authentication = useMemo(() => {
     return {
@@ -128,11 +147,10 @@ export default function DashboardLayoutBasic() {
         navigate("/signin");
       },
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    console.log("Session changed:", session);
     if (session) {
       fetchProducts().then((fetchedProducts) => {
         setProducts(fetchedProducts);
@@ -167,9 +185,10 @@ export default function DashboardLayoutBasic() {
             Welcome Back!
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>
-            You are signed out. Please sign in to continue accessing your dashboard.
+            You are signed out. Please sign in to continue accessing your
+            dashboard.
           </Typography>
-  
+
           <Button
             variant="contained"
             color="primary"
@@ -185,7 +204,7 @@ export default function DashboardLayoutBasic() {
           >
             Sign In
           </Button>
-  
+
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
             Don’t have an account?{" "}
             <Button
@@ -200,7 +219,6 @@ export default function DashboardLayoutBasic() {
       </Box>
     );
   }
-  
 
   return (
     <AppProvider
@@ -225,13 +243,7 @@ export default function DashboardLayoutBasic() {
         title: "Inventory Manager",
       }}
     >
-      <DashboardLayout>
-        {pathname.includes("predicted-products") ? (
-          <PredictedProductContent pathname={pathname} products={products} />
-        ) : (
-          <ProductContent pathname={pathname} products={products} setProducts={setProducts} />
-        )}
-      </DashboardLayout>
+      <DashboardLayout>{renderAccordingToPath()}</DashboardLayout>
     </AppProvider>
   );
 }
