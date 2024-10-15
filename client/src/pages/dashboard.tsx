@@ -15,6 +15,7 @@ import ProductContent from "../components/productContent";
 import { fetchProducts } from "../utils/api";
 import { Box, Typography, Button } from "@mui/material";
 import UploadCSV from "../components/uploadCSV";
+import DashboardAnalytics from "../components/dashboardAnalytics";
 
 const NAVIGATION: Navigation = [
   {
@@ -53,11 +54,11 @@ const NAVIGATION: Navigation = [
         title: "Sales",
         icon: <DescriptionIcon />,
       },
-      {
-        segment: "traffic",
-        title: "Traffic",
-        icon: <DescriptionIcon />,
-      },
+      // {
+      //   segment: "traffic",
+      //   title: "Traffic",
+      //   icon: <DescriptionIcon />,
+      // },
     ],
   },
 ];
@@ -119,6 +120,10 @@ export default function DashboardLayoutBasic() {
       );
     } else if (pathname.includes("upload-inventory-data")) {
       return <UploadCSV />;
+    } else if (pathname.includes("reports")) {
+      if (pathname.includes("sales")) {
+        return <DashboardAnalytics products={products} />;
+      }
     } else {
       return (
         <ProductContent

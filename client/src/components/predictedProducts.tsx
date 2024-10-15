@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import PaginatedTable from "../components/paginatedTable";
-import { predictProduct, ProductToPredict } from "../utils/api"; // API function to call prediction service
-
+import { predictProduct } from "../utils/api"; // API function to call prediction service
+import { ProductToPredict } from "../utils/commonTypes";
 interface Product {
   _id: string;
   store: number;
@@ -70,7 +70,7 @@ function PredictedProductContent({
     }
 
     fetchPredictedProducts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
