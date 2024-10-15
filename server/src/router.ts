@@ -5,6 +5,7 @@ import {
   getUsers,
 } from "./controllers/userController";
 import {
+  addBulkProductsWithCSV,
   addProduct,
   deleteProduct,
   getProducts,
@@ -35,6 +36,12 @@ router.get("/users", authenticateToken, getUsers);
 router.post("/login", loginRoutes);
 router.post("/register", registerRoutes);
 router.post("/product/add", authenticateToken, addProduct);
+router.post(
+  "/product/addBulk",
+  authenticateToken,
+  upload.single("file"),
+  addBulkProductsWithCSV
+);
 router.get("/product", authenticateToken, getProducts);
 router.post("/product/update", authenticateToken, updateProduct);
 router.delete("/product/delete", authenticateToken, deleteProduct);

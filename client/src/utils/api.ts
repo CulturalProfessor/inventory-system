@@ -136,6 +136,14 @@ export const addNewProduct = async (data: {
   return apiPost("/product/add", data);
 };
 
+export const addBulkProductsWithCSV = async (data: FormData) => {
+  return apiPost("/product/addBulk", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
 export const fetchProducts = async () => {
   return apiGet("/product");
 };

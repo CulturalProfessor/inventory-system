@@ -23,9 +23,6 @@ const UploadCSV = () => {
       setErrorMessage("Please select a file first.");
       return;
     }
-    const fileReader = new FileReader();
-    fileReader.readAsText(file);
-    console.log(fileReader);
 
     const formData = new FormData();
     formData.append("file", file);

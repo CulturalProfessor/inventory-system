@@ -7,17 +7,21 @@ import {
   Grid,
   Alert,
   IconButton,
+  LinearProgress,
 } from "@mui/material";
 import { useState } from "react";
 import {
   addNewProduct,
   updateProduct,
   deleteProduct,
+  addBulkProductsWithCSV,
 } from "../utils/api";
 import PaginatedTable from "./paginatedTable";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Column, Product } from "../utils/commonTypes";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useSnackbar } from "notistack";
 
 export default function ProductContent({
   products,
@@ -38,6 +42,9 @@ export default function ProductContent({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,7 +59,6 @@ export default function ProductContent({
       setError(null);
       setLoading(true);
       if (editMode && selectedProduct) {
-        // Update product
         await updateProduct({ _id: selectedProduct._id, ...productDetails });
         setProducts(
           products.map((p) =>
@@ -60,7 +66,6 @@ export default function ProductContent({
           )
         );
       } else {
-        // Add new product
         const { product } = (await addNewProduct(productDetails)) as {
           product: Product;
         };
@@ -106,6 +111,40 @@ export default function ProductContent({
     setProductDetails({ store: 0, dept: 0, size: 0, type: 0 });
     setEditMode(false);
     setShowModal(true);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setSuccessMessage("");
+      handleUploadCSV(selectedFile);
+    }
+  };
+
+  const handleUploadCSV = async (file: File) => {
+    setUploading(true);
+    setSuccessMessage("");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await addBulkProductsWithCSV(formData);
+      console.log("Response:", response);
+      if (response.success) {
+        setProducts([...products, ...response.products]);
+        setSuccessMessage("File uploaded successfully.");
+        enqueueSnackbar("File uploaded successfully.", { variant: "success" });
+      } else {
+        enqueueSnackbar("Error uploading file.", { variant: "error" });
+        setUploading(false);
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      enqueueSnackbar("Error uploading file.", { variant: "error" });
+      setUploading(false);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const columns: Column<Product>[] = [
@@ -166,7 +205,6 @@ export default function ProductContent({
         textAlign: "center",
       }}
     >
-      {/* Modal for Adding/Updating Product */}
       <Modal open={showProductModal} onClose={() => setShowModal(false)}>
         <Box
           sx={{
@@ -259,7 +297,6 @@ export default function ProductContent({
       <Box
         sx={{
           display: "flex",
-
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
@@ -268,13 +305,39 @@ export default function ProductContent({
         }}
       >
         <Typography variant="h5">Product List</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenAddModal}
-        >
-          Add Product
-        </Button>
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenAddModal}
+            sx={{ mr: 2 }}
+          >
+            Add Product
+          </Button>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            id="bulk-upload-button"
+          />
+          <label htmlFor="bulk-upload-button">
+            <Button
+              variant="outlined"
+              component="span"
+              startIcon={<CloudUploadIcon />}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Bulk Upload"}
+            </Button>
+          </label>
+          {uploading && <LinearProgress sx={{ mt: 2 }} />}
+          {successMessage && (
+            <Alert severity="success" sx={{ mt: 2 }}>
+              {successMessage}
+            </Alert>
+          )}
+        </Box>
       </Box>
 
       <Box sx={{ mt: 4, width: "100%", maxWidth: 800 }}>

@@ -29,6 +29,74 @@ export const addProduct = async (
   }
 };
 
+export const addBulkProductsWithCSV = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ message: "No file uploaded" });
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const csvData: Record<string, any>[] = [];
+    const fileContent = req.file.buffer.toString("utf-8");
+    const lines = fileContent.split("\n").filter((line) => line.trim() !== "");
+    const headers = lines[0].split(",").map((header) => header.trim());
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const values = line.split(",").map((value) => value.trim());
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const row: Record<string, any> = {};
+      headers.forEach((header, index) => {
+        const value = values[index] || "";
+        switch (header) {
+        case "Store":
+          row.store = Number(value);
+          break;
+        case "Dept":
+          row.dept = Number(value);
+          break;
+        case "Size":
+          row.size = Number(value);
+          break;
+        case "Type":
+          row.type = Number(value);
+          break;
+        case "Date":
+          row.date = value ? new Date(value) : new Date();
+          break;
+        default:
+          break;
+        }
+      });
+
+      if (!row.store || !row.dept || !row.size || !row.type) {
+        res
+          .status(400)
+          .json({ message: `Missing required fields in row ${i + 1}` });
+        return;
+      }
+
+      csvData.push(row);
+    }
+
+    const products = await Product.insertMany(csvData);
+    res.status(201).json({
+      message: "Products added successfully",
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.error("Error processing CSV data:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getProducts = async (
   req: Request,
   res: Response
