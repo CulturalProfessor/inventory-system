@@ -9,7 +9,7 @@ The **Inventory System** is a web-based solution designed to efficiently manage 
 - **Track Products**: Manage product details, including SKU, quantity, price, and more.
 - **Stock Updates**: Automatically update stock levels when products are added or removed.
 - **Customizable According to Your Data**: You can retrain the model by adding your inventory historical data in csv format according to sample file.
-- **Reports**: Generate detailed reports on stock levels, sales, and purchases.
+- **Analytics and Reports**: Generate detailed analytics and reports on stock levels, sales, and purchases.
 - **Docker Support**: Easily deploy the system using Docker.
 
 ## 📂 Project Structure
@@ -19,8 +19,9 @@ The **Inventory System** is a web-based solution designed to efficiently manage 
 ├── model/                      # Random forest Model
 ├── server/                     # Backend API and server code
 ├── .gitignore                  # Files and directories to be ignored by Git
-├── docker-compose.yml           # Docker Compose file for multi-container setup
+├── docker-compose.yml          # Docker Compose file for multi-container setup
 ├── makefile                    # Automation tasks for building and running the project
+├── bulk_upload.py              # Generate random Product Data
 ├── test_data_generator.py      # Generate random test historical inventory data
 └── README.md                   # Project documentation
 ```

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import PaginatedTable from "../components/paginatedTable";
 import { predictProduct } from "../utils/api"; // API function to call prediction service
 import { ProductToPredict } from "../utils/commonTypes";
+import { TableCell } from "@mui/material";
+
 interface Product {
   _id: string;
   store: number;
@@ -31,14 +33,27 @@ function PredictedProductContent({
     id: keyof PredictedProduct;
     label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    format?: (value: any) => string;
+    format?: (value: any, row: PredictedProduct) => React.ReactNode;
   }[] = [
     { id: "_id", label: "Product ID" },
     { id: "store", label: "Store" },
     { id: "dept", label: "Department" },
     { id: "type", label: "Type" },
     { id: "size", label: "Size" },
-    { id: "predictedSales", label: "Predicted Sales" },
+    {
+      id: "predictedSales",
+      label: "Predicted Sales",
+      format: (value: number, row: PredictedProduct) => (
+        <TableCell
+          sx={{
+            color: value > row.size ? "red" : "green",
+            fontWeight: "bold",
+          }}
+        >
+          {value}
+        </TableCell>
+      ),
+    },
     {
       id: "date",
       label: "Date",
