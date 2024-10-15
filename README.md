@@ -4,6 +4,9 @@
 
 The **Inventory System** is a web-based solution designed to efficiently manage and track inventory. It offers various features for monitoring products, updating stock levels, and automating basic inventory-related tasks. The project is containerized using Docker, making deployment across different environments simple and quick.
 
+## Demo 🤖
+[Walkthrough.webm](https://github.com/user-attachments/assets/44853f02-2750-4e63-8852-c6a25a620658)
+
 ## 🚀 Features
 
 - **Track Products**: Manage product details, including SKU, quantity, price, and more.
