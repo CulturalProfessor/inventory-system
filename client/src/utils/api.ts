@@ -1,8 +1,10 @@
 import axios from "axios";
 import { User, CustomError, ProductToPredict } from "./commonTypes";
 
-const environment = process.env.NODE_ENV;
-const backendUrl = process.env.BACKEND_URL;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const environment = (import.meta as any).env ? (import.meta as any).env.VITE_APP_ENV : "development";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const backendUrl = (import.meta as any)?.env.VITE_APP_BACKEND_URL;
 
 const getApiUrl = () => {
   if (environment === "development") {
@@ -23,6 +25,20 @@ export const removeAuthToken = () => {
   localStorage.removeItem("token");
 };
 
+const api = axios.create({
+  baseURL: getApiUrl(),
+  headers: {
+    Authorization: `Bearer ${getAuthToken()}`,
+    "Content-Type": "application/json",
+  },
+});
+
+const token = getAuthToken();
+if (token) {
+  api.defaults.headers["Authorization"] = `Bearer ${token}`;
+}
+api.defaults.headers["Content-Type"] = "application/json";
+
 export const setUserLocal = (user: User) => {
   localStorage.setItem("user", JSON.stringify(user));
 };
@@ -35,14 +51,6 @@ export const getUserLocal = (): User | null => {
 export const removeUser = () => {
   localStorage.removeItem("user");
 };
-
-const api = axios.create({
-  baseURL: getApiUrl(),
-  headers: {
-    Authorization: `Bearer ${getAuthToken()}`,
-    "Content-Type": "application/json",
-  },
-});
 
 export const setAuthHeader = () => {
   const token = getAuthToken();
