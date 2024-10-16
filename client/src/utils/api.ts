@@ -2,12 +2,13 @@ import axios from "axios";
 import { User, CustomError, ProductToPredict } from "./commonTypes";
 
 const environment = process.env.NODE_ENV;
+const backendUrl = process.env.BACKEND_URL;
 
 const getApiUrl = () => {
   if (environment === "development") {
     return "http://localhost:3001";
   }
-  return "https://api.example.com";
+  return backendUrl;
 };
 
 export const getAuthToken = () => {
@@ -46,10 +47,7 @@ const api = axios.create({
 export const setAuthHeader = () => {
   const token = getAuthToken();
   api.defaults.headers["Authorization"] = `Bearer ${token}`;
-}
-
-
-
+};
 
 // Handle errors from API calls
 const handleError = (error: unknown): CustomError => {
@@ -142,7 +140,7 @@ export const addBulkProductsWithCSV = async (data: FormData) => {
       "Content-Type": "multipart/form-data",
     },
   });
-}
+};
 
 export const fetchProducts = async () => {
   return apiGet("/product");
