@@ -1,16 +1,8 @@
 import axios from "axios";
 import { User, CustomError, ProductToPredict } from "./commonTypes";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const environment = (import.meta as any).env ? (import.meta as any).env.VITE_APP_ENV : "development";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const backendUrl = (import.meta as any)?.env.VITE_APP_BACKEND_URL;
-
 const getApiUrl = () => {
-  if (environment === "development") {
-    return "http://localhost:3001";
-  }
-  return backendUrl;
+  return "http://localhost:3001";
 };
 
 export const getAuthToken = () => {
