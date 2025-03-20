@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -6,6 +7,12 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# Setup logging
+LOG_FILE = "model_training.log"
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -66,13 +73,15 @@ def predict_sales(body: PredictRequest):
         pred_list = pred.tolist()
         return {"success": True, "predicted_sales": pred_list}
     except Exception as e:
+        logger.error(f"Prediction error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 @app.post("/uploadData")
 def upload_data(body: UploadDataRequest):
     try:        
+        logger.info("Received request to upload and retrain model.")
+
         train_df = pd.DataFrame([{
             "Store": product.Store,
             "Dept": product.Dept,
@@ -84,11 +93,13 @@ def upload_data(body: UploadDataRequest):
         } for product in body.data])
 
         if 'Date' not in train_df.columns:
+            logger.error("Missing 'Date' column in the data.")
             raise HTTPException(status_code=400, detail="'Date' column is missing in the data.")
 
         try:
             train_df['Date'] = pd.to_datetime(train_df['Date'], errors='raise')
         except Exception as e:
+            logger.error(f"Invalid date format: {str(e)}")
             raise HTTPException(status_code=400, detail="Invalid date format in 'Date' column.")
 
         label_encoder = LabelEncoder()
@@ -97,18 +108,35 @@ def upload_data(body: UploadDataRequest):
         train_df['Week'] = train_df['Date'].dt.isocalendar().week
         train_df['Year'] = train_df['Date'].dt.year
 
-        X_train = train_df[['Store', 'Dept', 'IsHoliday', 'Size', 'Week', 'Type', 'Year']]
-        Y_train = train_df['Weekly_Sales']
+        X = train_df[['Store', 'Dept', 'IsHoliday', 'Size', 'Week', 'Type', 'Year']]
+        Y = train_df['Weekly_Sales']
 
+        # Splitting data into train (80%) and validation (20%)
+        X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+        logger.info(f"Data split: {len(X_train)} training samples, {len(X_val)} validation samples.")
+
+        # Training the model
         RF = RandomForestRegressor(n_estimators=58, max_depth=27, max_features=6,
                                    min_samples_split=3, min_samples_leaf=1, random_state=42)
         RF.fit(X_train, Y_train)
 
+        # Validate model
+        val_score = RF.score(X_val, Y_val)
+        logger.info(f"Model validation R² score: {val_score:.4f}")
+
+        if val_score < 0:  # Poor model, do not save
+            logger.error("Model validation failed. Retraining required with better data.")
+            raise HTTPException(status_code=400, detail="Model validation failed. Retraining required with better data.")
+
+        # Save the model if validation is acceptable
         joblib.dump(RF, MODEL_PATH)
         global Model
         Model = RF
 
-        return {"success": True, "message": "Model retrained successfully with the new data"}
+        logger.info("Model retrained successfully and saved.")
+
+        return {"success": True, "message": "Model retrained successfully", "validation_score": val_score}
     except Exception as e:
-        print(f"Error processing the data: {str(e)}")
+        logger.error(f"Error during training: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
