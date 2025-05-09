@@ -57,7 +57,7 @@ def generate_random_data_with_adjusted_sales(n_rows):
     return df
 
 # Generate random data with 20 rows
-random_data = generate_random_data_with_adjusted_sales(100)
+random_data = generate_random_data_with_adjusted_sales(20)
 
 # Save the data to a CSV file
 random_data.to_csv('bulk_upload.csv', index=False)
