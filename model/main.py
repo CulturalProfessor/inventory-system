@@ -71,7 +71,6 @@ def predict_sales(body: PredictRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
 @app.post("/uploadData")
 def upload_data(body: UploadDataRequest):
     try:
@@ -103,10 +102,15 @@ def upload_data(body: UploadDataRequest):
         train_df['Week'] = train_df['Date'].dt.isocalendar().week
         train_df['Year'] = train_df['Date'].dt.year
 
-        X = train_df[['Store', 'Dept', 'IsHoliday', 'Size', 'Week', 'Type', 'Year']]
+        X = train_df[['Store', 'Dept', 'IsHoliday',
+                      'Size', 'Week', 'Type', 'Year']]
         y = train_df['Weekly_Sales']
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        # Split into train, validation, and test sets
+        X_train, X_temp, y_train, y_temp = train_test_split(
+            X, y, test_size=0.30, random_state=42)
+        X_valid, X_test, y_valid, y_test = train_test_split(
+            X_temp, y_temp, test_size=0.50, random_state=42)
 
         RF = RandomForestRegressor(
             n_estimators=58,
@@ -118,14 +122,23 @@ def upload_data(body: UploadDataRequest):
         )
         RF.fit(X_train, y_train)
 
-        # Evaluate model
-        y_pred = RF.predict(X_test)
-        metrics = {
-            "RMSE": round(np.sqrt(mean_squared_error(y_test, y_pred)), 2),
-            "MAE": round(mean_absolute_error(y_test, y_pred), 2),
-            "R2_Score": round(r2_score(y_test, y_pred), 4)
+        # Evaluate model on both validation and test sets
+        y_valid_pred = RF.predict(X_valid)
+        y_test_pred = RF.predict(X_test)
+
+        valid_metrics = {
+            "RMSE": round(np.sqrt(mean_squared_error(y_valid, y_valid_pred)), 2),
+            "MAE": round(mean_absolute_error(y_valid, y_valid_pred), 2),
+            "R2_Score": round(r2_score(y_valid, y_valid_pred), 4)
         }
 
+        test_metrics = {
+            "RMSE": round(np.sqrt(mean_squared_error(y_test, y_test_pred)), 2),
+            "MAE": round(mean_absolute_error(y_test, y_test_pred), 2),
+            "R2_Score": round(r2_score(y_test, y_test_pred), 4)
+        }
+
+        # Save the trained model
         joblib.dump(RF, MODEL_PATH)
         global Model
         Model = RF
@@ -133,7 +146,10 @@ def upload_data(body: UploadDataRequest):
         return {
             "success": True,
             "message": "Model retrained successfully with the new data.",
-            "metrics": metrics
+            "metrics": {
+                "validation": valid_metrics,
+                "test": test_metrics
+            }
         }
 
     except Exception as e:

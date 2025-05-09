@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Button, Box, Typography, LinearProgress, Alert } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  LinearProgress,
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { uploadCSV } from "../utils/api";
 
@@ -8,6 +17,10 @@ const UploadCSV = () => {
   const [uploading, setUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [metrics, setMetrics] = useState<{
+    validation: { RMSE: number; MAE: number; R2_Score: number };
+    test: { RMSE: number; MAE: number; R2_Score: number };
+  } | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -15,6 +28,7 @@ const UploadCSV = () => {
       setFile(selectedFile);
       setSuccessMessage("");
       setErrorMessage("");
+      setMetrics(null);
     }
   };
 
@@ -30,13 +44,24 @@ const UploadCSV = () => {
     setUploading(true);
     setSuccessMessage("");
     setErrorMessage("");
+    setMetrics(null);
 
     try {
       const response = await uploadCSV(formData);
       if (response.data.success) {
+
         setSuccessMessage(
-          "File uploaded successfully: " + response.data.message
+          "File uploaded successfully: "
         );
+
+        if (response.data.success && response.data?.metrics) {
+          setSuccessMessage(
+            "File uploaded successfully: "
+          );
+          setMetrics(response.data.metrics);
+        } else {
+          setErrorMessage("Failed to upload file");
+        }
       } else {
         setErrorMessage("Failed to upload file");
       }
@@ -75,6 +100,46 @@ const UploadCSV = () => {
         <Alert severity="error" sx={{ mb: 2 }}>
           {errorMessage}
         </Alert>
+      )}
+
+      {metrics && (
+        <Box sx={{ width: "100%", mt: 1, mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+            Evaluation Metrics:
+          </Typography>
+
+          <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>
+            Validation Set
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary={`RMSE: ${metrics.validation.RMSE}`} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary={`MAE: ${metrics.validation.MAE}`} />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={`R² Score: ${metrics.validation.R2_Score}`}
+              />
+            </ListItem>
+          </List>
+
+          <Typography variant="body2" fontWeight="bold" sx={{ mt: 2 }}>
+            Test Set
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary={`RMSE: ${metrics.test.RMSE}`} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary={`MAE: ${metrics.test.MAE}`} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary={`R² Score: ${metrics.test.R2_Score}`} />
+            </ListItem>
+          </List>
+        </Box>
       )}
 
       <input
