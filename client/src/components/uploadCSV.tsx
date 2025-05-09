@@ -21,6 +21,9 @@ const UploadCSV = () => {
     validation: { RMSE: number; MAE: number; R2_Score: number };
     test: { RMSE: number; MAE: number; R2_Score: number };
   } | null>(null);
+  const [samplePredictions, setSamplePredictions] = useState<
+    { Actual: number; Predicted: number }[] | null
+  >(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -29,6 +32,7 @@ const UploadCSV = () => {
       setSuccessMessage("");
       setErrorMessage("");
       setMetrics(null);
+      setSamplePredictions(null);
     }
   };
 
@@ -45,22 +49,18 @@ const UploadCSV = () => {
     setSuccessMessage("");
     setErrorMessage("");
     setMetrics(null);
+    setSamplePredictions(null);
 
     try {
       const response = await uploadCSV(formData);
       if (response.data.success) {
-
-        setSuccessMessage(
-          "File uploaded successfully: "
-        );
+        setSuccessMessage("File uploaded successfully");
 
         if (response.data.success && response.data?.metrics) {
-          setSuccessMessage(
-            "File uploaded successfully: "
-          );
           setMetrics(response.data.metrics);
-        } else {
-          setErrorMessage("Failed to upload file");
+        }
+        if (response.data.success && response.data?.sample_predictions) {
+          setSamplePredictions(response.data.sample_predictions);
         }
       } else {
         setErrorMessage("Failed to upload file");
@@ -138,6 +138,23 @@ const UploadCSV = () => {
             <ListItem>
               <ListItemText primary={`R² Score: ${metrics.test.R2_Score}`} />
             </ListItem>
+          </List>
+        </Box>
+      )}
+
+      {samplePredictions && (
+        <Box sx={{ width: "100%", mt: 2 }}>
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+            Sample Predictions:
+          </Typography>
+          <List dense>
+            {samplePredictions.map((prediction, index) => (
+              <ListItem key={index}>
+                <ListItemText
+                  primary={`Actual: ${prediction.Actual} - Predicted: ${prediction.Predicted}`}
+                />
+              </ListItem>
+            ))}
           </List>
         </Box>
       )}
